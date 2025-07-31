@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADB Device Manager</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <h2><i class="fas fa-mobile-alt"></i> ADB Manager</h2>
+            </div>
+            <ul class="sidebar-menu">
+                <li><a href="#dashboard" class="menu-item active" data-section="dashboard">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a></li>
+                <li><a href="#devices" class="menu-item" data-section="devices">
+                    <i class="fas fa-mobile-alt"></i> Devices
+                </a></li>
+                <li><a href="#live-view" class="menu-item" data-section="live-view">
+                    <i class="fas fa-eye"></i> Live View
+                </a></li>
+
+                <li><a href="#youtube" class="menu-item" data-section="youtube">
+                    <i class="fab fa-youtube"></i> YouTube Automation
+                </a></li>
+
+                <li><a href="#url-opener" class="menu-item" data-section="url-opener">
+                    <i class="fas fa-external-link-alt"></i> URL Opener
+                </a></li>
+                <li><a href="#google-signin" class="menu-item" data-section="google-signin">
+                    <i class="fab fa-google"></i> Google Sign-in
+                </a></li>
+                <li><a href="#vpn" class="menu-item" data-section="vpn">
+                    <i class="fas fa-shield-alt"></i> VPN Automation
+                </a></li>
+                <li><a href="#app-launcher" class="menu-item" data-section="app-launcher">
+                    <i class="fas fa-rocket"></i> App Launcher
+                </a></li>
+
+                <li><a href="#wifi-manager" class="menu-item" data-section="wifi-manager">
+                    <i class="fas fa-wifi"></i> WiFi Manager
+                </a></li>
+                <li><a href="#custom-scripts" class="menu-item" data-section="custom-scripts">
+                    <i class="fas fa-code"></i> Custom Scripts
+                </a></li>
+            </ul>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="header">
+                <div class="header-left">
+                    <button class="sidebar-toggle" id="sidebarToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1 id="pageTitle">Dashboard</h1>
+                </div>
+                <div class="header-right">
+                    <button class="refresh-btn" id="refreshDevices">
+                        <i class="fas fa-sync-alt"></i> Refresh Devices
+                    </button>
+                    <div class="device-count">
+                        <span id="deviceCount">0</span> devices connected
+                    </div>
+                </div>
+            </header>
+
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="content-section active">
+                <div class="dashboard-grid">
+                    <div class="dashboard-card">
+                        <div class="card-icon">
+                            <i class="fas fa-mobile-alt"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Connected Devices</h3>
+                            <p class="card-number" id="dashboardDeviceCount">0</p>
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <div class="card-icon">
+                            <i class="fas fa-play"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Running Scripts</h3>
+                            <p class="card-number" id="runningScripts">0</p>
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <div class="card-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Completed Tasks</h3>
+                            <p class="card-number" id="completedTasks">0</p>
+                        </div>
+                    </div>
+                    <div class="dashboard-card">
+                        <div class="card-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <div class="card-content">
+                            <h3>Failed Tasks</h3>
+                            <p class="card-number" id="failedTasks">0</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="recent-activity">
+                    <h3>Recent Activity</h3>
+                    <div class="activity-list" id="activityList">
+                        <p class="no-activity">No recent activity</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Devices Section -->
+            <section id="devices" class="content-section">
+                <div class="section-header">
+                    <h2>Device Management</h2>
+                    <div class="device-actions">
+                        <button class="btn btn-primary" id="takeScreenshots">
+                            <i class="fas fa-camera"></i> Take Screenshots
+                        </button>
+                        <button class="btn btn-secondary" id="clearAllProxies">
+                            <i class="fas fa-times"></i> Clear All Proxies
+                        </button>
+                    </div>
+                </div>
+                <div class="devices-grid" id="devicesGrid">
+                    <div class="loading">Loading devices...</div>
+                </div>
+            </section>
+
+            <!-- Live View Section -->
+            <section id="live-view" class="content-section">
+                <div class="section-header">
+                    <h2>Live Device View</h2>
+                    <p>Real-time view of all connected devices with interactive controls</p>
+                    <div class="live-view-controls">
+                        <button class="btn btn-primary" id="startAllLiveStreams">
+                            <i class="fas fa-play"></i> Start All Live Streams
+                        </button>
+                        <button class="btn btn-danger" id="stopAllLiveStreams">
+                            <i class="fas fa-stop"></i> Stop All Live Streams
+                        </button>
+                        <button class="btn btn-secondary" id="refreshLiveView">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="live-view-grid" id="liveViewGrid">
+                    <div class="loading">No devices available for live view</div>
+                </div>
+            </section>
+
+            <!-- Live View Modal -->
+            <div id="liveViewModal" class="modal live-view-modal">
+                <div class="modal-content live-view-modal-content">
+                    <div class="modal-header">
+                        <h3 id="liveViewModalTitle">Device Live View</h3>
+                        <div class="live-view-modal-controls">
+                            <button class="btn btn-sm btn-secondary" id="liveViewScreenshot">
+                                <i class="fas fa-camera"></i> Screenshot
+                            </button>
+                            <button class="btn btn-sm btn-danger" id="liveViewRecord" data-recording="false">
+                                <i class="fas fa-video"></i> Record
+                            </button>
+                            <button class="modal-close" id="closeLiveViewModal">&times;</button>
+                        </div>
+                    </div>
+                    <div class="modal-body live-view-modal-body">
+                        <div class="live-screen-container">
+                            <div class="live-screen-wrapper">
+                                <img id="liveScreenImage" class="live-screen" src="" alt="Device Screen">
+                                <div class="live-screen-overlay" id="liveScreenOverlay"></div>
+                                <div class="connection-status" id="connectionStatus">
+                                    <i class="fas fa-spinner fa-spin"></i> Connecting...
+                                </div>
+                            </div>
+                        </div>
+                        <div class="device-controls">
+                            <div class="control-group">
+                                <h4>Navigation</h4>
+                                <div class="control-buttons">
+                                    <button class="control-btn" data-action="home">
+                                        <i class="fas fa-home"></i> Home
+                                    </button>
+                                    <button class="control-btn" data-action="back">
+                                        <i class="fas fa-arrow-left"></i> Back
+                                    </button>
+                                    <button class="control-btn" data-action="menu">
+                                        <i class="fas fa-bars"></i> Menu
+                                    </button>
+                                    <button class="control-btn" data-action="recent">
+                                        <i class="fas fa-layer-group"></i> Recent
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="control-group">
+                                <h4>System</h4>
+                                <div class="control-buttons">
+                                    <button class="control-btn" data-action="power">
+                                        <i class="fas fa-power-off"></i> Power
+                                    </button>
+                                    <button class="control-btn" data-action="volume-up">
+                                        <i class="fas fa-volume-up"></i> Vol+
+                                    </button>
+                                    <button class="control-btn" data-action="volume-down">
+                                        <i class="fas fa-volume-down"></i> Vol-
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="control-group">
+                                <h4>Text Input</h4>
+                                <div class="text-input-group">
+                                    <input type="text" id="textInput" placeholder="Enter text to send to device">
+                                    <button class="btn btn-primary" id="sendText">
+                                        <i class="fas fa-paper-plane"></i> Send
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- YouTube Automation Section -->
+            <section id="youtube" class="content-section">
+                <div class="section-header">
+                    <h2>YouTube Automation</h2>
+                    <p>Automate YouTube video playback with advanced options</p>
+                </div>
+
+
+
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label>Video Management</label>
+                        <div class="video-table-container">
+                            <div class="table-controls">
+                                <button type="button" id="addVideoRow" class="btn btn-secondary btn-sm">
+                                    <i class="fas fa-plus"></i> Add Video
+                                </button>
+                                <button type="button" id="selectAllVideos" class="btn btn-outline btn-sm">
+                                    Select All
+                                </button>
+                                <button type="button" id="deselectAllVideos" class="btn btn-outline btn-sm">
+                                    Deselect All
+                                </button>
+                            </div>
+                            <div id="videoTable" class="video-table">
+                                <table class="videos-table">
+                                    <thead>
+                                        <tr>
+                                            <th width="40px">
+                                                <input type="checkbox" id="selectAllCheckbox" class="select-all-checkbox">
+                                            </th>
+                                            <th width="80px">Category</th>
+                                            <th>Video URL</th>
+                                            <th width="120px">Actual Duration</th>
+                                            <th width="150px">Play Duration (sec)</th>
+                                            <th width="60px">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="videoTableBody">
+                                        <tr class="video-row">
+                                            <td>
+                                                <input type="checkbox" class="video-select">
+                                            </td>
+                                            <td class="video-category">-</td>
+                                            <td>
+                                                <input type="url" class="video-url-input" placeholder="Paste YouTube URL here...">
+                                            </td>
+                                            <td class="duration-display">-</td>
+                                            <td>
+                                                <input type="number" class="play-duration-input" min="1" placeholder="Auto">
+                                            </td>
+                                            <td>
+                                                <button type="button" class="btn-icon remove-video" title="Remove">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="youtubeChannelUrl">OR YouTube Channel URL</label>
+                        <div class="input-group">
+                            <input type="url" id="youtubeChannelUrl" placeholder="https://www.youtube.com/@channelname or https://www.youtube.com/c/channelname">
+                            <button type="button" class="btn btn-primary" id="fetchChannelVideos">
+                                <i class="fas fa-download"></i> Fetch Content
+                            </button>
+                        </div>
+                        
+                        <div class="content-filter-group" style="margin-top: 10px;">
+                            <label style="font-size: 14px; margin-bottom: 5px; display: block;">Content Type:</label>
+                            <div class="radio-group" style="display: flex; gap: 15px;">
+                                <label class="radio-label" style="display: flex; align-items: center; font-size: 14px;">
+                                    <input type="radio" name="contentFilter" value="all" checked style="margin-right: 5px;">
+                                    <i class="fas fa-list" style="margin-right: 3px;"></i> All
+                                </label>
+                                <label class="radio-label" style="display: flex; align-items: center; font-size: 14px;">
+                                    <input type="radio" name="contentFilter" value="videos" style="margin-right: 5px;">
+                                    <i class="fas fa-play-circle" style="margin-right: 3px;"></i> Videos
+                                </label>
+                                <label class="radio-label" style="display: flex; align-items: center; font-size: 14px;">
+                                    <input type="radio" name="contentFilter" value="shorts" style="margin-right: 5px;">
+                                    <i class="fas fa-mobile-alt" style="margin-right: 3px;"></i> Shorts
+                                </label>
+                                <label class="radio-label" style="display: flex; align-items: center; font-size: 14px;">
+                                    <input type="radio" name="contentFilter" value="live" style="margin-right: 5px;">
+                                    <i class="fas fa-broadcast-tower" style="margin-right: 3px;"></i> Live
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <small>Enter a YouTube channel URL to fetch content and add them to the video management table above</small>
+                    </div>
+
+                </div>
+
+                <div class="device-selection">
+                    <div class="selection-header">
+                        <h3>Select Devices</h3>
+                        <div class="selection-controls">
+                            <button class="btn btn-sm btn-outline" id="selectAllYouTubeDevices">Select All</button>
+                            <button class="btn btn-sm btn-outline" id="deselectAllYouTubeDevices">Deselect All</button>
+                        </div>
+                    </div>
+                    <div class="device-checkboxes" id="youtubeDeviceList">
+                        <p class="no-devices">No devices available</p>
+                    </div>
+                </div>
+
+                <div class="action-section">
+                    <button class="btn btn-primary btn-large" id="startYouTubeAutomation" disabled>
+                        <i class="fas fa-play"></i> Start YouTube Automation
+                    </button>
+                </div>
+
+                <!-- Video Control Section (shown during automation) -->
+                <div class="video-controls" id="youtubeVideoControls" style="display: block;">
+                    <div class="section-header">
+                        <h3>Video Controls</h3>
+                        <p>Control video playback on all devices</p>
+                    </div>
+                    
+                    <div class="control-buttons">
+                        <button class="btn btn-secondary" id="pauseResumeVideo">
+                            <i class="fas fa-pause"></i> Pause/Resume
+                        </button>
+                        <button class="btn btn-secondary" id="skipVideo">
+                            <i class="fas fa-forward"></i> Skip Video
+                        </button>
+                        <button class="btn btn-secondary" id="likeCurrentVideo">
+                            <i class="fas fa-thumbs-up"></i> Like Video
+                        </button>
+                        <button class="btn btn-secondary" id="subscribeChannel">
+                            <i class="fas fa-bell"></i> Subscribe
+                        </button>
+                        <button class="btn btn-secondary" id="commentVideo">
+                            <i class="fas fa-comment"></i> Comment
+                        </button>
+                        <button class="btn btn-secondary" id="shareVideo">
+                            <i class="fas fa-share"></i> Share
+                        </button>
+
+                    </div>
+                    
+                    <div class="skip-controls">
+                        <label for="skipSeconds">Skip seconds:</label>
+                        <div class="skip-input-group">
+                            <input type="number" id="skipSeconds" value="10" min="1" max="300">
+                            <button class="btn btn-sm btn-secondary" id="skipForward">
+                                <i class="fas fa-step-forward"></i> Skip Forward
+                            </button>
+                            <button class="btn btn-sm btn-secondary" id="skipBackward">
+                                <i class="fas fa-step-backward"></i> Skip Backward
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+
+
+            <!-- URL Opener Section -->
+            <section id="url-opener" class="content-section">
+                <div class="section-header">
+                    <h2>URL Opener</h2>
+                    <p>Open URLs in default browser on selected devices</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="defaultBrowserUrl">URL to Open</label>
+                    <input type="url" id="defaultBrowserUrl" placeholder="https://example.com">
+                </div>
+
+                <div class="device-selection">
+                    <div class="selection-header">
+                        <h3>Select Devices</h3>
+                        <div class="selection-controls">
+                            <button class="btn btn-sm btn-outline" id="selectAllUrlDevices">Select All</button>
+                            <button class="btn btn-sm btn-outline" id="deselectAllUrlDevices">Deselect All</button>
+                        </div>
+                    </div>
+                    <div class="device-checkboxes" id="urlDeviceList">
+                        <p class="no-devices">No devices available</p>
+                    </div>
+                </div>
+
+                <div class="action-section">
+                    <button class="btn btn-primary btn-large" id="openUrl" disabled>
+                        <i class="fas fa-external-link-alt"></i> Open URL
+                    </button>
+                </div>
+            </section>
+
+            <!-- Google Sign-in Section -->
+            <section id="google-signin" class="content-section">
+                <div class="section-header">
+                    <h2>Google Sign-in</h2>
+                    <p>Automated Google account sign-in through YouTube</p>
+                </div>
+
+                <div class="upload-section">
+                    <div class="file-upload" id="accountsFileUpload">
+                        <div class="upload-area">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                            <p>Upload accounts file (email:password format, one per line)</p>
+                            <input type="file" id="accountsFile" accept=".txt,.csv" hidden>
+                        </div>
+                        <div class="file-info" id="accountsFileInfo" style="display: none;">
+                            <i class="fas fa-file-text"></i>
+                            <span class="filename"></span>
+                            <button class="remove-file"><i class="fas fa-times"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="device-selection">
+                    <div class="selection-header">
+                        <h3>Select Devices</h3>
+                        <div class="selection-controls">
+                            <button class="btn btn-sm btn-outline" id="selectAllSigninDevices">Select All</button>
+                            <button class="btn btn-sm btn-outline" id="deselectAllSigninDevices">Deselect All</button>
+                        </div>
+                    </div>
+                    <div class="device-checkboxes" id="signinDeviceList">
+                        <p class="no-devices">No devices available</p>
+                    </div>
+                </div>
+
+                <div class="action-section">
+                    <button class="btn btn-primary btn-large" id="startGoogleSignin" disabled>
+                        <i class="fas fa-play"></i> Start Google Sign-in
+                    </button>
+                </div>
+            </section>
+
+            <!-- VPN Automation Section -->
+            <section id="vpn" class="content-section">
+                <div class="section-header">
+                    <h2>VPN Automation</h2>
+                    <p>Manage VPN proxies and automate VPN client operations</p>
+                </div>
+
+                <div class="form-grid">
+                    <div class="form-group full-width">
+                        <label>Proxy Management</label>
+                        <div class="proxy-table-container">
+                            <div class="table-controls">
+                                <button type="button" id="addProxyBtn" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-plus"></i> Add Proxy
+                                </button>
+                                <button type="button" id="bulkDeleteProxies" class="btn btn-danger btn-sm" disabled>
+                                    <i class="fas fa-trash-alt"></i> Delete Selected
+                                </button>
+                                <button type="button" id="checkProxyStatus" class="btn btn-info btn-sm">
+                                    <i class="fas fa-sync"></i> Check Status
+                                </button>
+                            </div>
+                            <div id="proxyTable" class="proxy-table">
+                                <table id="proxies-table" class="proxies-table">
+                                    <thead>
+                                        <tr>
+                                            <th width="40px">
+                                                <input type="checkbox" id="selectAllProxyCheckbox" class="select-all-checkbox">
+                                            </th>
+                                            <th>IP String (ip:port:user:pass)</th>
+                                            <th width="120px">Location</th>
+                                            <th width="80px">Status</th>
+                                            <th width="100px">Device</th>
+                                            <th width="120px">Tags</th>
+                                            <th width="60px">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="proxyTableBody">
+                                        <tr class="proxy-row">
+                                            <td>
+                                                <input type="checkbox" class="proxy-select">
+                                            </td>
+                                            <td>
+                                                <input type="text" class="proxy-string-input" placeholder="Paste proxy here (ip:port:user:pass)">
+                                            </td>
+                                            <td class="location-display">-</td>
+                                            <td class="status-display">-</td>
+                                            <td class="device-display">-</td>
+                                            <td>
+                                                <input type="text" class="tags-input" placeholder="Add tags...">
+                                            </td>
+                                            <td>
+                                                <button type="button" class="btn btn-danger btn-sm remove-proxy" title="Remove">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="proxy-status-info">
+                                <div class="status-item">
+                                    <span class="status-label">Total Rows:</span>
+                                    <span id="totalProxyRows" class="status-value">0</span>
+                                </div>
+                                <div class="status-item">
+                                    <span class="status-label">Selected:</span>
+                                    <span id="selectedProxyRows" class="status-value">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="device-selection">
+                    <div class="selection-header">
+                        <h3>Select Devices</h3>
+                        <div class="selection-controls">
+                            <button class="btn btn-sm btn-outline" id="selectAllVpnDevices">Select All</button>
+                            <button class="btn btn-sm btn-outline" id="deselectAllVpnDevices">Deselect All</button>
+                        </div>
+                    </div>
+                    <div class="device-checkboxes" id="vpnDeviceList">
+                        <p class="no-devices">No devices available</p>
+                    </div>
+                </div>
+
+                <div class="device-status-section">
+                    <h3>Device VPN Status</h3>
+                    <div id="deviceVpnStatus" class="device-vpn-grid">
+                        <!-- Device VPN status will be populated here -->
+                    </div>
+                </div>
+
+                <div class="action-section">
+                    <button class="btn btn-primary btn-large" id="startVpnAutomation" disabled>
+                        <i class="fas fa-shield-alt"></i> Start VPN Automation
+                    </button>
+                </div>
+            </section>
+
+            <!-- App Launcher Section -->
+            <section id="app-launcher" class="content-section">
+                <div class="section-header">
+                    <h2>App Launcher</h2>
+                    <p>Launch apps using package names on selected devices</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="packageName">Package Name</label>
+                    <input type="text" id="packageName" placeholder="com.example.app">
+                    <small>Common packages: com.android.chrome, com.google.android.youtube</small>
+                </div>
+
+                <div class="device-selection">
+                    <div class="selection-header">
+                        <h3>Select Devices</h3>
+                        <div class="selection-controls">
+                            <button class="btn btn-sm btn-outline" id="selectAllAppDevices">Select All</button>
+                            <button class="btn btn-sm btn-outline" id="deselectAllAppDevices">Deselect All</button>
+                        </div>
+                    </div>
+                    <div class="device-checkboxes" id="appDeviceList">
+                        <p class="no-devices">No devices available</p>
+                    </div>
+                </div>
+
+                <div class="action-section">
+                    <button class="btn btn-primary btn-large" id="launchApp" disabled>
+                        <i class="fas fa-rocket"></i> Launch App
+                    </button>
+                </div>
+            </section>
+
+
+
+            <!-- WiFi Manager Section -->
+            <section id="wifi-manager" class="content-section">
+                <div class="section-header">
+                    <h2>WiFi Manager</h2>
+                    <p>Enable/disable WiFi and check connection status</p>
+                </div>
+
+                <div class="wifi-actions">
+                    <button class="btn btn-success" id="enableWifi">
+                        <i class="fas fa-wifi"></i> Enable WiFi
+                    </button>
+                    <button class="btn btn-danger" id="disableWifi">
+                        <i class="fas fa-wifi"></i> Disable WiFi
+                    </button>
+                    <button class="btn btn-info" id="checkWifiStatus">
+                        <i class="fas fa-search"></i> Check Status
+                    </button>
+                </div>
+
+                <div class="device-selection">
+                    <div class="selection-header">
+                        <h3>Select Devices</h3>
+                        <div class="selection-controls">
+                            <button class="btn btn-sm btn-outline" id="selectAllWifiDevices">Select All</button>
+                            <button class="btn btn-sm btn-outline" id="deselectAllWifiDevices">Deselect All</button>
+                        </div>
+                    </div>
+                    <div class="device-checkboxes" id="wifiDeviceList">
+                        <p class="no-devices">No devices available</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Custom Scripts Section -->
+            <section id="custom-scripts" class="content-section">
+                <div class="section-header">
+                    <h2>Custom Scripts</h2>
+                    <p>Execute custom ADB commands with full flexibility</p>
+                </div>
+
+                <div class="form-group">
+                    <label for="customCommand">ADB Command</label>
+                    <input type="text" id="customCommand" placeholder="shell input tap 500 500">
+                    <small>Enter ADB command without 'adb -s device_id' prefix</small>
+                </div>
+
+                <div class="device-selection">
+                    <div class="selection-header">
+                        <h3>Select Devices</h3>
+                        <div class="selection-controls">
+                            <button class="btn btn-sm btn-outline" id="selectAllCustomDevices">Select All</button>
+                            <button class="btn btn-sm btn-outline" id="deselectAllCustomDevices">Deselect All</button>
+                        </div>
+                    </div>
+                    <div class="device-checkboxes" id="customDeviceList">
+                        <p class="no-devices">No devices available</p>
+                    </div>
+                </div>
+
+                <div class="action-section">
+                    <button class="btn btn-primary btn-large" id="executeCustomCommand" disabled>
+                        <i class="fas fa-code"></i> Execute Command
+                    </button>
+                </div>
+
+                <div class="command-results" id="commandResults" style="display: none;">
+                    <h3>Execution Results</h3>
+                    <div class="results-grid" id="resultsGrid"></div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Progress Modal -->
+    <div class="modal" id="progressModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="progressTitle">Script Execution</h3>
+                <button class="modal-close" id="closeProgressModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <p class="progress-text" id="progressText">Initializing...</p>
+                <div class="progress-actions">
+                    <button class="btn btn-danger" id="stopScript">
+                        <i class="fas fa-stop"></i> Stop Script
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Screenshot Modal -->
+    <div class="modal" id="screenshotModal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 id="screenshotTitle">Device Screenshot</h3>
+                <button class="modal-close" id="closeScreenshotModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <img id="screenshotImage" src="" alt="Device Screenshot">
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js?v=1753993100000"></script>
+</body>
+</html>
+
