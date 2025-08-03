@@ -1,7 +1,0 @@
-testuser1@gmail.com:password123
-testuser2@gmail.com:mypassword456
-demo@example.com:demopass789
-user123@gmail.com:userpass321
-testaccount@gmail.com:testpass654
-sample@example.com:samplepass987
-
