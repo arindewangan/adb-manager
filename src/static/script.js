@@ -579,7 +579,9 @@ function setupEventListeners() {
 
     document.getElementById('openUrl').addEventListener('click', openUrl);
     document.getElementById('startGoogleSignin').addEventListener('click', startGoogleSignin);
+    document.getElementById('startGoogleSignout').addEventListener('click', startGoogleSignout);
     document.getElementById('startVpnAutomation').addEventListener('click', startVpnAutomation);
+    document.getElementById('installVpnApp').addEventListener('click', installVpnApp);
     document.getElementById('launchApp').addEventListener('click', launchApp);
 
     document.getElementById('executeCustomCommand').addEventListener('click', executeCustomCommand);
@@ -1182,11 +1184,17 @@ function updateButtonStates() {
     const startGoogleSigninBtn = document.getElementById('startGoogleSignin');
     if (startGoogleSigninBtn) startGoogleSigninBtn.disabled = !signinSelected || !accountsFileUploaded;
     
+    const startGoogleSignoutBtn = document.getElementById('startGoogleSignout');
+    if (startGoogleSignoutBtn) startGoogleSignoutBtn.disabled = !signinSelected;
+    
     const vpnSelected = getSelectedDevices('vpnDeviceList').length > 0;
     const vpnInputTextElement = document.getElementById('vpnInputText');
     const vpnInputText = vpnInputTextElement ? vpnInputTextElement.value.trim() : '';
     const startVpnBtn = document.getElementById('startVpnAutomation');
     if (startVpnBtn) startVpnBtn.disabled = !vpnSelected || !vpnInputText;
+    
+    const installVpnAppBtn = document.getElementById('installVpnApp');
+    if (installVpnAppBtn) installVpnAppBtn.disabled = !vpnSelected;
     
     const appSelected = getSelectedDevices('appDeviceList').length > 0;
     const packageNameElement = document.getElementById('packageName');
@@ -1906,6 +1914,36 @@ async function startGoogleSignin() {
     }
 }
 
+async function startGoogleSignout() {
+    const selectedDevices = getSelectedDevices('signinDeviceList');
+    
+    if (selectedDevices.length === 0) {
+        showToast('Please select devices for Google Sign-out', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/scripts/google-signout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ devices: selectedDevices })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            currentScriptId = result.script_id;
+            showProgressModal('Google Sign-out');
+            startScriptStatusMonitoring();
+            showToast('Google Sign-out started', 'success');
+        } else {
+            showToast(result.error || 'Failed to start Google Sign-out', 'error');
+        }
+    } catch (error) {
+        showToast('Failed to start Google Sign-out: ' + error.message, 'error');
+    }
+}
+
 async function startVpnAutomation() {
     const selectedDevices = getSelectedDevices('vpnDeviceList');
     const selectedProxies = getSelectedProxyData();
@@ -1950,6 +1988,41 @@ async function startVpnAutomation() {
         }
     } catch (error) {
         showToast('Failed to start VPN automation: ' + error.message, 'error');
+    }
+}
+
+async function installVpnApp() {
+    const selectedDevices = getSelectedDevices('vpnDeviceList');
+    
+    if (selectedDevices.length === 0) {
+        showToast('Please select devices to install VPN app', 'error');
+        return;
+    }
+    
+    try {
+        const response = await fetch('/api/scripts/install-vpn-app', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                devices: selectedDevices
+            })
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+            showToast('VPN app installation completed', 'success');
+            
+            // Show results for each device
+            result.results.forEach(deviceResult => {
+                const status = deviceResult.success ? 'success' : 'error';
+                showToast(`${deviceResult.device}: ${deviceResult.message}`, status);
+            });
+        } else {
+            showToast(result.error || 'Failed to install VPN app', 'error');
+        }
+    } catch (error) {
+        showToast('Failed to install VPN app: ' + error.message, 'error');
     }
 }
 

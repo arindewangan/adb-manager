@@ -759,6 +759,152 @@ def google_signin():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+def google_signout_thread(devices, script_id):
+    """Google sign-out thread function"""
+    try:
+        script_status[script_id] = {
+            'status': 'running', 
+            'progress': 0, 
+            'message': 'Starting Google sign-out automation',
+            'devices_processed': 0,
+            'total_devices': len(devices),
+            'successful_devices': 0,
+            'failed_devices': 0
+        }
+        
+        total_devices = len(devices)
+        successful_count = 0
+        failed_count = 0
+        
+        for i, device_id in enumerate(devices):
+            if script_status[script_id]['status'] == 'stopped':
+                break
+            
+            # Check if device is connected
+            device_check = run_adb_command('get-state', device_id)
+            if not device_check['success'] or 'device' not in device_check['output']:
+                print(f"[DEBUG] Device {device_id} is not connected, skipping")
+                failed_count += 1
+                continue
+                
+            script_status[script_id]['message'] = f'Signing out Google account on device {device_id}'
+            device_success = True
+            
+            try:
+                print(f"[DEBUG] Starting Google sign-out on device {device_id}")
+                
+                # Open Android Settings -> Accounts
+                settings_result = run_adb_command('shell am start -a android.settings.SYNC_SETTINGS', device_id)
+                if not settings_result['success']:
+                    print(f"[DEBUG] Failed to open account settings on device {device_id}")
+                    failed_count += 1
+                    device_success = False
+                    continue
+                
+                time.sleep(3)  # Wait for settings to load
+                
+                # Look for Google account in the list and tap on it
+                # Try multiple common positions for Google account
+                run_adb_command('shell input tap 540 400', device_id)  # First Google account position
+                time.sleep(2)
+                
+                # Try alternative position if first didn't work
+                run_adb_command('shell input tap 540 500', device_id)  # Second Google account position
+                time.sleep(2)
+                
+                # Look for "Remove account" or "More" menu
+                # Tap on menu button (3 dots) in top right
+                run_adb_command('shell input tap 950 200', device_id)
+                time.sleep(1)
+                
+                # Tap on "Remove account" option
+                run_adb_command('shell input tap 540 300', device_id)
+                time.sleep(2)
+                
+                # Confirm removal by tapping "Remove account" button
+                run_adb_command('shell input tap 700 600', device_id)
+                time.sleep(2)
+                
+                # Alternative method: Try scrolling down to find remove option
+                run_adb_command('shell input swipe 540 800 540 400', device_id)  # Scroll down
+                time.sleep(1)
+                
+                # Look for "Remove account" text and tap
+                run_adb_command('shell input tap 540 700', device_id)
+                time.sleep(2)
+                
+                # Confirm the removal
+                run_adb_command('shell input tap 700 600', device_id)
+                time.sleep(2)
+                
+                # Go back to home
+                run_adb_command('shell input keyevent 3', device_id)  # Home button
+                time.sleep(2)
+                
+                # Verify account was removed by checking account list
+                verification_result = run_adb_command('shell dumpsys account', device_id)
+                if verification_result['success']:
+                    google_accounts = verification_result['output'].lower().count('google')
+                    print(f"[DEBUG] Google accounts remaining on device {device_id}: {google_accounts}")
+                
+                if device_success:
+                    successful_count += 1
+                    print(f"[DEBUG] Google sign-out completed on device {device_id}")
+                
+            except Exception as e:
+                print(f"[DEBUG] Error during Google sign-out on device {device_id}: {e}")
+                failed_count += 1
+                device_success = False
+            
+            # Update progress
+            script_status[script_id]['devices_processed'] = i + 1
+            script_status[script_id]['successful_devices'] = successful_count
+            script_status[script_id]['failed_devices'] = failed_count
+            script_status[script_id]['progress'] = int(((i + 1) / total_devices) * 100)
+            
+            time.sleep(2)  # Small delay between devices
+        
+        if script_status[script_id]['status'] != 'stopped':
+            script_status[script_id]['status'] = 'completed'
+            script_status[script_id]['message'] = f'Google sign-out completed: {successful_count} successful, {failed_count} failed out of {total_devices} devices'
+        
+    except Exception as e:
+        script_status[script_id]['status'] = 'error'
+        script_status[script_id]['message'] = f'Error during Google sign-out: {str(e)}'
+        print(f"[DEBUG] Google sign-out error: {e}")
+        import traceback
+        traceback.print_exc()
+
+@scripts_bp.route('/google-signout', methods=['POST'])
+def google_signout():
+    """Google Sign-out script"""
+    try:
+        data = request.get_json()
+        devices = data.get('devices', [])
+        
+        if not devices:
+            return jsonify({'error': 'No devices selected'}), 400
+        
+        script_id = str(uuid.uuid4())
+        
+        # Start Google Sign-out thread
+        thread = threading.Thread(
+            target=google_signout_thread,
+            args=(devices, script_id)
+        )
+        thread.daemon = True
+        thread.start()
+        
+        script_threads[script_id] = thread
+        
+        return jsonify({
+            'message': 'Google Sign-out started',
+            'script_id': script_id
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 @scripts_bp.route('/status/<script_id>', methods=['GET'])
 def get_script_status(script_id):
     """Get script execution status"""
@@ -1248,6 +1394,65 @@ def vpn_automation():
         
         return jsonify({
             'message': 'VPN automation completed',
+            'results': results
+        })
+        
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@scripts_bp.route('/install-vpn-app', methods=['POST'])
+def install_vpn_app():
+    """Install VPN app on selected devices"""
+    try:
+        data = request.get_json()
+        devices = data.get('devices', [])
+        
+        if not devices:
+            return jsonify({'error': 'No devices selected'}), 400
+        
+        # Path to the VPN APK file
+        apk_path = os.path.join(os.getcwd(), 'apps', 'vpn.apk')
+        
+        # Check if APK file exists
+        if not os.path.exists(apk_path):
+            return jsonify({'error': 'VPN APK file not found at /apps/vpn.apk'}), 400
+        
+        results = []
+        for device_id in devices:
+            try:
+                # Install the APK using adb install command
+                result = run_adb_command(f'install "{apk_path}"', device_id)
+                
+                if result['success']:
+                    # Check if installation was successful by looking for success message
+                    if 'Success' in result.get('output', '') or result.get('output', '').strip() == '':
+                        results.append({
+                            'device': device_id,
+                            'success': True,
+                            'message': 'VPN app installed successfully'
+                        })
+                    else:
+                        results.append({
+                            'device': device_id,
+                            'success': False,
+                            'message': f'Installation failed: {result.get("output", "Unknown error")}'
+                        })
+                else:
+                    results.append({
+                        'device': device_id,
+                        'success': False,
+                        'message': f'ADB command failed: {result.get("error", "Unknown error")}'
+                    })
+                    
+            except Exception as e:
+                results.append({
+                    'device': device_id,
+                    'success': False,
+                    'message': f'Error: {str(e)}'
+                })
+        
+        return jsonify({
+            'message': 'VPN app installation completed',
             'results': results
         })
         
